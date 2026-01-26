@@ -1,0 +1,6 @@
+@BlackDragonAPI_HostAddress = http://localhost:5209
+
+GET {{BlackDragonAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
