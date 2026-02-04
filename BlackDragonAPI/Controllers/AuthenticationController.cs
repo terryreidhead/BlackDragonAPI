@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BlackDragonAPI.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using BlackDragonAPI.Models;
 
 namespace BlackDragonAPI.Controllers;   
 
@@ -57,8 +58,9 @@ public class AuthenticationController : ControllerBase
    /// <param name="request">The login request containing the user's email and password to be validated.</param>
    /// <returns>An IActionResult that contains a JWT token if authentication succeeds; otherwise, an Unauthorized result.</returns>
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
-        {
+    public async Task<IActionResult> Login([FromBody] BlackDragonAPI.Models.LoginRequest request)
+
+    {
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
             return Unauthorized();
