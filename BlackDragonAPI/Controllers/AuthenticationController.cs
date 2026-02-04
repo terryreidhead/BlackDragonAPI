@@ -14,7 +14,7 @@ namespace BlackDragonAPI.Controllers;
 public class AuthenticationController : ControllerBase
     {
         private readonly UserManager<IdentityUser> _userManager;
-                private readonly IConfiguration _configuration;
+        private readonly IConfiguration _configuration;
         public AuthenticationController(
             UserManager<IdentityUser> userManager,
          
@@ -24,6 +24,8 @@ public class AuthenticationController : ControllerBase
             
             _configuration = configuration;
         }
+
+
     /// <summary>
     /// Registers a new user account using the specified registration details.
     /// </summary>
@@ -45,11 +47,15 @@ public class AuthenticationController : ControllerBase
             return BadRequest(result.Errors);
         }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="request"></param>
-    /// <returns></returns>
+   /// <summary>
+   /// Authenticates a user using the provided login credentials and returns a JWT token if authentication is
+   /// successful.
+   /// </summary>
+   /// <remarks>The user's email address must be registered, and the password must be correct for
+   /// authentication to succeed. This endpoint is typically used to obtain a token for subsequent authenticated
+   /// requests.</remarks>
+   /// <param name="request">The login request containing the user's email and password to be validated.</param>
+   /// <returns>An IActionResult that contains a JWT token if authentication succeeds; otherwise, an Unauthorized result.</returns>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
@@ -64,6 +70,44 @@ public class AuthenticationController : ControllerBase
         var token = GenerateJwtToken(user);
         return Ok(new { token });
         }
+
+
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout([FromServices] TokenBlacklistContext db)
+    {
+        // Since JWTs are stateless, logout can be handled on the client side by simply deleting the token.
+        // Optionally, you could implement token blacklisting on the server side if needed.
+        var token = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+        db.Tokens.Add(new TokenBlacklist {  Token = token, RevokedAt = DateTime.UtcNow});
+        await db.SaveChangesAsync();
+        return Ok();
+    }   
+
+    /// <summary>
+    /// Deletes the user account associated with the specified email address.
+    /// </summary>
+    /// <remarks>The specified email address must correspond to an existing user. Ensure that the email
+    /// provided is valid and registered in the system before calling this method.</remarks>
+    /// <param name="email">The email address of the user to delete. This parameter cannot be null or empty.</param>
+    /// <returns>An IActionResult that indicates the result of the delete operation. Returns Ok if the user is successfully
+    /// deleted, NotFound if no user exists with the specified email address, or BadRequest with error details if the
+    /// deletion fails.</returns>
+    [HttpDelete("delete/{email}")]
+    public async Task<IActionResult> DeleteUser(string email)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+        {
+            return NotFound();
+        }
+        var result = await _userManager.DeleteAsync(user);
+        if (result.Succeeded)
+        {
+            return Ok();
+        }
+        return BadRequest(result.Errors);
+    }
+
     /// <summary>
     /// Generates a JSON Web Token (JWT) that contains claims identifying the specified user.
     /// </summary>
@@ -95,7 +139,7 @@ public class AuthenticationController : ControllerBase
             issuer: issuer,
             audience: audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(30),
+            expires: DateTime.UtcNow.AddMinutes(60),
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
