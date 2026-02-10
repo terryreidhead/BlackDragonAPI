@@ -2,44 +2,56 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-
 namespace BlackDragonAPI.Models
 {
-    /// <summary>
-    /// Represents a user profile that contains personal and contact information associated with an application user.
-    /// </summary>
-    /// <remarks>The UserProfile class stores user-specific data such as names, contact details, and
-    /// demographic information. It is linked to the application's user account through the UserId property, which
-    /// references an IdentityUser. This class is typically used to extend the identity system with additional profile
-    /// information required by the application.</remarks>
     public class UserProfile
     {
         [Key]
         public int Id { get; set; }
 
         [Required]
-        public string UserId { get; set; }
+        [MaxLength(450)] // matches typical AspNetUsers.Id length when using string keys
+        public string UserId { get; set; } = string.Empty;
 
-        [ForeignKey("UserId")]
-        public IdentityUser IdentityUser { get; set; }
+        [ForeignKey(nameof(UserId))]
+        public IdentityUser? IdentityUser { get; set; }
 
-        [Required]
-        public string FirstName { get; set; } = string.Empty;
+        [MaxLength(50)]
+        public string? FirstName { get; set; }
 
-        [Required]
-        public string LastName { get; set; } = string.Empty;
+        [MaxLength(50)]
+        public string? LastName { get; set; }
+
+        [MaxLength(50)]
+        public string? DisplayName { get; set; }
 
         [Phone]
+        [MaxLength(25)]
         public string? PhoneNumber { get; set; }
 
-        public string? Username { get; set; }
+        [MaxLength(100)]
+        public string? AddressLine1 { get; set; }
 
-        public string? Gender { get; set; }
+        [MaxLength(100)]
+        public string? AddressLine2 { get; set; }
 
-        public int? Age { get; set; }
+        [MaxLength(60)]
+        public string? City { get; set; }
 
-        public string? Address { get; set; }
+        [MaxLength(25)]
+        public string? State { get; set; }
 
-        public string BeltLevel { get; set; }
+        [MaxLength(20)]
+        public string? PostalCode { get; set; }
+
+        [Required]
+        [MaxLength(20)]
+        public string BeltLevel { get; set; } = "White";
+
+        [Required]
+        public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
+
+        [Required]
+        public DateTime UpdatedUtc { get; set; } = DateTime.UtcNow;
     }
 }

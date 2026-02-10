@@ -1,10 +1,11 @@
 using BlackDragonAPI.Data;
+using BlackDragonAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Microsoft.OpenApi.Models;
+using System.Text;
 
 /// Create builder
 var builder = WebApplication.CreateBuilder(args);
@@ -55,6 +56,11 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddControllers();
 
+/// Register IUserContext for dependency injection
+builder.Services.AddHttpContextAccessor();
+
+/// Register UserContext as the implementation of IUserContext
+builder.Services.AddScoped<IUserContext, UserContext>();
 /// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 
 
